@@ -1,0 +1,46 @@
+services:
+  rabbitmq:
+    image: rabbitmq:4.4.0-management-alpine
+    hostname: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_BOOTSTRAP_USERNAME:?set bootstrap username}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_BOOTSTRAP_PASSWORD:?set bootstrap password}
+      RABBITMQ_DEFAULT_VHOST: ai
+    ports:
+      - "${RABBITMQ_BIND_IP:?set private RabbitMQ bind IP}:5672:5672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - enqueuer_net
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+    restart: unless-stopped
+
+  rabbitmq-init:
+    image: ${NOUS_ENQUEUER_IMAGE:?set an immutable nous-enqueuer image reference}
+    command: ["python", "-m", "enqueuer.init_rabbitmq"]
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_MANAGEMENT_PORT: 15672
+      RABBITMQ_VHOST: ai
+      RABBITMQ_BOOTSTRAP_USERNAME: ${RABBITMQ_BOOTSTRAP_USERNAME:?set bootstrap username}
+      RABBITMQ_BOOTSTRAP_PASSWORD: ${RABBITMQ_BOOTSTRAP_PASSWORD:?set bootstrap password}
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:?set app username}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:?set app password}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - enqueuer_net
+    restart: "no"
+
+networks:
+  enqueuer_net:
+    driver: bridge
+
+volumes:
+  rabbitmq_data:
