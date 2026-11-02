@@ -15,6 +15,7 @@ Use Python 3.9 or newer. Create a virtual environment with `python3 -m venv .ven
 - Run locally for development: `flask --app app run --host 0.0.0.0 --port 8000`.
 - Serve the public endpoint: `gunicorn --bind 0.0.0.0:8000 app:app`.
 - Build and run the container: `docker build -t telegram-rabbitmq-webhook .` then pass `RABBITMQ_URL` with `docker run -e RABBITMQ_URL ...`.
+- Pushes to `main` publish SHA and `latest` tags to GHCR via `.github/workflows/publish-ghcr.yml`.
 - Run tests: `python -m unittest discover -s tests -v`.
 
 ## Style and Tests

@@ -58,6 +58,8 @@ docker run -d \
 
 The image runs as a non-root user. Do not put broker credentials in the Dockerfile or image.
 
+Every push to `main` builds and publishes `linux/amd64` and `linux/arm64` variants as `ghcr.io/<owner>/nous-enqueuer:sha-<commit>` and `:latest`. Use the SHA tag in GitOps when pinning a deployment image.
+
 Configure Telegram's webhook separately to call `https://<host>/telegram/webhook`. The host must route HTTPS traffic to this service. The endpoint has no application authentication in this first version.
 
 The service returns success only after RabbitMQ confirms the publication. Broker failures return HTTP 503 so Telegram can retry. Each request body is queued as a persistent message in a durable queue.
